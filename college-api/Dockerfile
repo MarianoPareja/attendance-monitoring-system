@@ -1,7 +1,6 @@
 FROM python:3.11
 
 RUN apt-get update \
-    && apt-get install tree \
     && apt-get install -y --no-install-recommends \
         postgresql-client \
     && apt-get clean \
