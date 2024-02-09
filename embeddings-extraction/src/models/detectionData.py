@@ -5,5 +5,5 @@ from pydantic import BaseModel
 
 class DetectionData(BaseModel):
     time: str
-    course_id: str
-    faces: List[List[float]]
+    class_id: int
+    faces: List[List[List[int]]]

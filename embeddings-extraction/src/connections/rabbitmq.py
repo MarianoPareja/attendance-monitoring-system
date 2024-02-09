@@ -12,7 +12,14 @@ class RabitMQConnection:
 
     def post_message(self, data, routing_key="embeddings"):
         """
-        data: json serialized data
+        Sends data through class exchange
+
+        Parameters:
+        - data (str): Json serialized data
+
+        Returns:
+        No returns
+
         """
         self.channel.basic_publish(
             exchange=self.exchange,

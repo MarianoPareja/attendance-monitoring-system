@@ -1,49 +1,56 @@
 import json
 import logging
-import os
+import time
 from typing import List
 
 from fastapi import APIRouter, Response
+from pika.exceptions import AMQPConnectionError
 from pydantic import BaseModel
 from torch import Tensor
 
 from connections.rabbitmq import RabitMQConnection
+from models.detectionData import DetectionData
 from models.InceptionResnetV1 import InceptionResnetV1, load_weights
 
 logging.basicConfig(level=logging.DEBUG)
 
+
+# CONSTANTS DECLARATION
+# ------------------------------------------
+
+RABBITMQ_HOST = "localhost"
+EXHCANGE_NAME = "direct_data"
+EXHCANGE_TYPE = "direct"
+WEIGHTS_FILE_PATH = "/Users/mariano/Documents/Projects/attendance-monitoring-system/embeddings-extraction/models/20180402-114759-vggface2.pt"
+
+
+# COMPONENTS INITIALIZATION
+# ------------------------------------------
+
 emb_router = APIRouter()
-
 rabbitmq_conn = RabitMQConnection(
-    host="localhost", exchange="direct_data", exchange_type="direct"
+    host=RABBITMQ_HOST, exchange=EXHCANGE_NAME, exchange_type=EXHCANGE_TYPE
 )
-
 model = InceptionResnetV1().eval()
-load_weights(
-    model,
-    "/Users/mariano/Documents/Projects/attendance-monitoring-system/embeddings-extraction/models/20180402-114759-vggface2.pt",
-)
+load_weights(model, WEIGHTS_FILE_PATH)
 
 
-class DetectionData(BaseModel):
-    time: str
-    class_id: int
-    faces: List[List[List[int]]]
+# ROUTES DEFINITION
+# ------------------------------------------
 
 
 @emb_router.post("/detected_faces")
 async def extract_embeddings(data: DetectionData):
     """
     Recieves json containing the detected faces and generates embeddings of them.
-    Input Json Structure:
-    {
-        "time": str,
-        "class_id": str,
-        "faces": list,
-    }
+
+    Parameters:
+    - data (DetectionData): Json formatted data including ("time", "class_id", "embeddings") of detected faces
+
+    Returns:
+    HTTP Response Code
+
     """
-    print("ENTERED THE 'extract_embeddings' FUNCTION")
-    # print(data)
 
     try:
         tensor = Tensor(data.faces)
@@ -61,12 +68,20 @@ async def extract_embeddings(data: DetectionData):
             "embeddings": embeddings,
         }
         embeddings_data = json.dumps(embeddings_data)
-        rabbitmq_conn.post_message(data=embeddings_data, routing_key="embeddings")
 
-        # Upload data to 'Embedding Queue'
+        try:
+            rabbitmq_conn.post_message(data=embeddings_data, routing_key="embeddings")
+        except:
+            logging.error(f"AMQPConnectionError: {str(e)}")
+            logging.info("Attempting to reconnect to RabbitMQ...")
+            time.sleep(3)
 
         return Response(status_code=200)
 
+    except ValueError as ve:
+        logging.error(f"ValueError: {str(ve)}")
+        return Response(content=str(ve), status_code=422)
+
     except Exception as e:
-        print(f"Exception: {str(e)}")
-        return Response(content=str(e), status_code=422)
+        logging.error(f"Exception: {str(e)}")
+        return Response(content=str(e), status_code=500)

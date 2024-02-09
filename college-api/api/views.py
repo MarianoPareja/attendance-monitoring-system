@@ -54,6 +54,31 @@ class SubjectScheduleViewSet(viewsets.ModelViewSet):
     queryset = SubjectSchedule.objects.all()
     serializer_class = SubjectScheduleSerializer
 
+    @action(detail=False, methods=["get"])
+    def get_course_schedule(self, request):
+        """
+        Get all subjects scheduled for a specific classroom.
+
+        Parameters:
+        - classroom_id (int): Classroom ID identifer
+
+        Request Body:
+        {
+            "weekday": "Lunes",
+            "start_time": "08:00 AM",
+            "end_time": "10:00 AM",
+            "subject": "Nombre de la materia",
+            "classroom": "Nombre de la sala"
+        }
+
+        """
+        classroom_id = request.query_params.get("classroom_id")
+
+        queryset = SubjectSchedule.objects.filter(classroom=classroom_id)
+        serializer = self.serializer_class(queryset, many=True)
+
+        return Response(serializer.data)
+
 
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
