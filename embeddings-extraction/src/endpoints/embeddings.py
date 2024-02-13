@@ -1,16 +1,16 @@
 import json
 import logging
+import os
 import time
 from typing import List
 
+from connections.rabbitmq import RabitMQConnection
 from fastapi import APIRouter, Response
+from models.detectionData import DetectionData
+from models.InceptionResnetV1 import InceptionResnetV1, load_weights
 from pika.exceptions import AMQPConnectionError
 from pydantic import BaseModel
 from torch import Tensor
-
-from connections.rabbitmq import RabitMQConnection
-from models.detectionData import DetectionData
-from models.InceptionResnetV1 import InceptionResnetV1, load_weights
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -21,7 +21,9 @@ logging.basicConfig(level=logging.DEBUG)
 RABBITMQ_HOST = "localhost"
 EXHCANGE_NAME = "direct_data"
 EXHCANGE_TYPE = "direct"
-WEIGHTS_FILE_PATH = "/Users/mariano/Documents/Projects/attendance-monitoring-system/embeddings-extraction/models/20180402-114759-vggface2.pt"
+WEIGHTS_FILE_PATH = os.path.join(
+    os.path.dirname(os.getcwd()), "models/20180402-114759-vggface2.pt"
+)
 
 
 # COMPONENTS INITIALIZATION

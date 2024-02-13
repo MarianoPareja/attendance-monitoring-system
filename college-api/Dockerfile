@@ -6,11 +6,11 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/app
+WORKDIR /app
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-COPY college-page /usr/src/app/college-page
+COPY ./ /app/
 
 EXPOSE 8000
-CMD ["python", "college-page/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "src/manage.py", "runserver", "0.0.0.0:8000"]

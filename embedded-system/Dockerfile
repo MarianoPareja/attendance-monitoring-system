@@ -1,7 +1,7 @@
-FROM python:3.11-alpine
+FROM python:3.11
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends --no-install-suggets \ 
+    && apt-get install -y --no-install-recommends --no-install-suggests \ 
     && build-essentials \
     && pip install --no-cache-dir --upgrade pip
 
