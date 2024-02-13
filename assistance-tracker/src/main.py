@@ -3,11 +3,11 @@ import threading
 import time
 from datetime import datetime, timedelta
 
-from connections.rabbitmq import RabitMQConnection
+from connections.rabbitmq import RabbitMQConnection
 from models.assistanceTracker import AssistanceTracker
 
 assist_tracker_list = []
-rabbitmq_conn = RabitMQConnection(
+rabbitmq_conn = RabbitMQConnection(
     host="localhost", exchange="direct_data", exchange_type="direct"
 )
 

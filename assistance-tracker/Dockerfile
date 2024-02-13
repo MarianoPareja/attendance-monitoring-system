@@ -1,8 +1,8 @@
-FROM python:3.11-alpine
+FROM python:3.11
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends --no-install-suggets \ 
-    && build-essentials \
+    && apt-get install -y --no-install-recommends --no-install-suggests \
+    build-essential \ 
     && pip install --no-cache-dir --upgrade pip
 
 WORKDIR /app 
