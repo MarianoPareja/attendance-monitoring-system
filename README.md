@@ -27,7 +27,7 @@ The microservices were developed using:
 **Instalation using Docker Compose:** If you want to test the system without using Docker Compose instead of Kubernetes, you can run the following command: 
 
 ```bash
-$ dockercopomse -up .
+$ docker compomse -up .
 ```
 
 For testing each microservice, you can either: 
