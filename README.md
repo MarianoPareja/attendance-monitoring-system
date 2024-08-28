@@ -9,13 +9,13 @@ This projects is a PoC (Proof of Concept) of a automated attendance control syst
 As there are multiple microservices, there may be some difference between them, it was aimed to maintain a common based strcuture as shown below:
 
 ```
-├── README.md               <- Top level README file  
 ├── Microservice            <- Microservice folder  
-|   ├── manifests           <- Files that defines the configuration of Kubernetes resources  
 |   ├── src                 <- Source code for use in the microservice  
 |   ├── tests               <- Scripts for testing microservices  
 |   ├── Dockerfile          <- File to build docker image  
 |   ├── requirements.txt    <- The requirements file for installing all dependencies  
+├── README.md               <- Top level README file  
+├── docker-compose.yml      <- File to run (Server Microservices + PostgresDB + RabbitMQ)
 ```
 
 
@@ -24,20 +24,20 @@ As there are multiple microservices, there may be some difference between them, 
 The microservices were developed using: 
 - Python 3.11.5
 
-**Instalation using Docker Compose:** If you want to test the system without using Docker Compose instead of Kubernetes, you can run the following command: 
+**Instalation using Docker Compose:** If you want to test the whole system, you can use the docker-compose.yml file to build it:
 
 ```bash
-$ dockercopomse -up .
+$ docker-compose up
 ```
 
 For testing each microservice, you can either: 
 1. Build and run the Docker Image
 ```bash
-build docker images 
-run docker image
+$ cd microservice_name
+# Build the image
+$ docker build -t .
+# Run the container
+$ docker run --name <container_name> <image_name>
 ```
 
-2. Install dependencies and run the main script 
-python3 -m venv venv 
-pip install -r requirements.txt
-python main.py 
+2. Install dependencies and run the main script for each microservice

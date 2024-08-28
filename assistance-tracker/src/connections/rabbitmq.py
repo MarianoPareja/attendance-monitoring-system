@@ -1,5 +1,10 @@
+import logging
+import time
+
 import pika
 import pika.exceptions
+
+logger = logging.getLogger("pika")
 
 
 class RabbitMQConnection:
@@ -9,14 +14,29 @@ class RabbitMQConnection:
         self.exchange_type = exchange_type
         self.heartbeat_interval = 60
 
-        # Connect for the first time
-        self.connect()
+        # Intialize connection object
+        while True:
+            try:
+                print("Connecting to RabbitMQ Server")
+                self.connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(
+                        host=self.host, heartbeat=self.heartbeat_interval
+                    )
+                )
+                print("Connected to RabbitMQ successfully")
+                break
+
+            except pika.exceptions.AMQPConnectionError as e:
+                print("Error when connecting to RabbitMQ host %s", self.host)
+                print("Retrying connection in 3 seconds...")
+                time.sleep(3)
 
     def connect(self):
         """
         Connect to RabbitMQ Server
         """
         try:
+            logger.info("connecting to RabbitMQ Server")
             self.connection = pika.BlockingConnection(
                 pika.ConnectionParameters(
                     host=self.host, heartbeat=self.heartbeat_interval
@@ -36,7 +56,7 @@ class RabbitMQConnection:
                 exchange=self.exchange, queue="emb_queue", routing_key="embeddings"
             )
         except pika.exceptions.AMQPConnectionError as e:
-            print("Error when connecting to RabbitMQ {}".format(e))
+            logger.error("Error when connecting to rabbitMQ host %s", self.host)
 
     def post_message(self, data, routing_key="embeddings"):
         """
@@ -45,11 +65,12 @@ class RabbitMQConnection:
         :param data: JSON serialized data
         """
 
-        if not self.connection.is_open:
+        while not self.connection.is_open:
             try:
                 self.connect()
             except pika.exceptions.AMQPConnectionError as e:
-                print("Error when trying to connect to RabbitMQ {}".format(e))
+                logger.info("Retrying connection in 3 seconds...")
+                time.sleep(3)
 
         self.channel.basic_publish(
             exchange=self.exchange,
@@ -59,11 +80,12 @@ class RabbitMQConnection:
 
     def consume_messages(self, callback_fn):
 
-        if not self.connection.is_open:
+        while not self.connection.is_open:
             try:
                 self.connect()
             except pika.exceptions.AMQPConnectionError as e:
-                print("Error when trying to connect to RabbitMQ {}".format(e))
+                logger.info("Retrying connection in 3 seconds...")
+                time.sleep(3)
 
         self.channel.basic_consume(
             queue="emb_queue", on_message_callback=callback_fn, auto_ack=True
